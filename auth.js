@@ -5,17 +5,14 @@ const pool = require('./db');
 
 const router = express.Router();
 
-// User Registration
 router.post('/register', async (req, res) => {
-  const { username, password, email } = req.body;
+  const { username, password, email, first_name, last_name, age, gender, weight } = req.body;
 
-  // Input validation
-  if (!username || !password || !email) {
+  if (!username || !password || !email || !first_name || !last_name || !age || !gender || !weight) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
   try {
-    // First check if user exists
     const userCheck = await pool.query(
       'SELECT * FROM users WHERE username = $1 OR email = $2',
       [username, email]
@@ -25,28 +22,40 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Username or email already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new user
-    const result = await pool.query(
-      'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id, username, email',
+    await pool.query('BEGIN');
+
+    const userResult = await pool.query(
+      'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING id',
       [username, hashedPassword, email]
     );
 
+    const userId = userResult.rows[0].id;
+
+    const profileInsert = await pool.query(
+      'INSERT INTO profiles (user_id, first_name, last_name, age, gender, weight) VALUES ($1, $2, $3, $4, $5, $6)',
+      [userId, first_name, last_name, age, gender, weight]
+    );
+
+    if (profileInsert.rowCount === 0) {
+      throw new Error('Profile insertion failed.');
+    }
+
+    await pool.query('COMMIT');
+
     res.json({
       message: 'User registered successfully!',
-      user: {
-        id: result.rows[0].id,
-        username: result.rows[0].username,
-        email: result.rows[0].email
-      }
+      user: { id: userId, username, email }
     });
   } catch (err) {
+    await pool.query('ROLLBACK');
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Server error during registration', details: err.message });
   }
 });
+
+
 
 // User Login
 router.post('/login', async (req, res) => {
