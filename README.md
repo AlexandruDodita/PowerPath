@@ -8,3 +8,5 @@ PowerPath was built with simplicity and efficiency in mind, evolving alongside t
 
 ## Future Development
 Currently, PowerPath is in its early stages and operates locally, requiring some user-side configuration. The next phase of development focuses on hosting the platform and integrating a robust database. Future enhancements include progress-tracking graphs for key lifts and muscle groups, daily weigh-in logs, and an integrated fitness blog. More features are planned to expand functionality and improve user experience.
+
+### Note: Github pages does not allow for a proper back-end. Thus, there is limited functionality available on Github pages.
