@@ -16,6 +16,7 @@ async function handleAuth(event) {
     const data = await response.json();
     if (response.ok) {
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user_id', data.user_id);
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('main-screen').style.display = 'block';
     } else {
@@ -76,45 +77,108 @@ function showRegister() {
       <button type="button" onclick="location.reload()">Back to Login</button>
     `;
 }
-function startWorkout() {
-  document.getElementById('main-screen').style.display = 'none';
-  document.getElementById('workout-screen').style.display = 'block';
-}
 
-function viewHistory() {
-  alert('Viewing Workout History...');
-}
+
 
 function addExercise() {
   const list = document.getElementById('exercise-list');
   const div = document.createElement('div');
   div.classList.add('exercise-item');
   div.innerHTML = `
-            <select>
-                <option>Squat</option>
-                <option>Bench Press</option>
-                <option>Deadlift</option>
-                <option>Pull-up</option>
-                <option>Overhead Press</option>
-            </select>
-            <input type="number" placeholder="Sets" required>
-            <input type="number" placeholder="Reps" required>
-            <input type="number" placeholder="RPE / RIR" required>
-        `;
+    <select class="exercise-select">
+      <optgroup label="Compound Movements">
+        <option>Squat</option>
+        <option>Deadlift</option>
+        <option>Bench Press</option>
+        <option>Overhead Press</option>
+        <option>Barbell Row</option>
+        <option>Pull-ups</option>
+      </optgroup>
+      <optgroup label="Lower Body">
+        <option>Romanian Deadlift</option>
+        <option>Leg Press</option>
+        <option>Lunges</option>
+        <option>Leg Extensions</option>
+        <option>Leg Curls</option>
+        <option>Calf Raises</option>
+        <option>Hip Thrusts</option>
+      </optgroup>
+      <optgroup label="Upper Body Push">
+        <option>Incline Bench</option>
+        <option>Dips</option>
+        <option>Push-ups</option>
+        <option>Lateral Raises</option>
+        <option>Tricep Pushdowns</option>
+        <option>Tricep Extensions</option>
+      </optgroup>
+      <optgroup label="Upper Body Pull">
+        <option>Lat Pulldown</option>
+        <option>Cable Rows</option>
+        <option>Face Pulls</option>
+        <option>Bicep Curls</option>
+        <option>Hammer Curls</option>
+        <option>Preacher Curls</option>
+      </optgroup>
+    </select>
+    <input type="number" placeholder="Sets" min="1" max="20" value="3" oninput="validateNumber(this, 1, 20)">
+    <input type="number" placeholder="Reps" min="1" max="100" value="10" oninput="validateNumber(this, 1, 100)">
+    <input type="number" placeholder="RPE" min="0" max="10" step="0.5" value="7" oninput="validateRPE(this)">
+    <button class="remove-btn" onclick="removeExercise(this)" title="Remove Exercise">×</button>
+  `;
   list.appendChild(div);
 }
 
+function validateNumber(input, min, max) {
+  let value = parseInt(input.value);
+  if (isNaN(value)) value = min;
+  input.value = Math.min(Math.max(value, min), max);
+}
+
+function validateRPE(input) {
+  let value = parseFloat(input.value);
+  if (isNaN(value)) value = 7;
+  input.value = Math.min(Math.max(value, 0), 10);
+}
+
+function removeExercise(button) {
+  if (document.getElementsByClassName('exercise-item').length > 1) {
+    button.parentElement.remove();
+  } else {
+    alert('You must have at least one exercise in your workout');
+  }
+}
+
+
 function finishWorkout() {
   const exercises = Array.from(document.getElementsByClassName('exercise-item')).map(item => {
-    const inputs = item.getElementsByTagName('input');
-    const select = item.getElementsByTagName('select')[0];
+    const select = item.querySelector('select');
+    const [sets, reps, rpe] = Array.from(item.querySelectorAll('input')).map(input => input.value);
+
     return {
       exercise_name: select.value,
-      sets: inputs[0].value,
-      reps: inputs[1].value,
-      rpe: inputs[2].value
+      sets: parseInt(sets),
+      reps: parseInt(reps),
+      rpe: parseFloat(rpe)
     };
   });
+
+  if (exercises.some(ex => !ex.exercise_name || !ex.sets || !ex.reps || ex.rpe === undefined)) {
+    alert('Please fill in all exercise details');
+    return;
+  }
+
+  const user_id = localStorage.getItem('user_id');
+  if (!user_id) {
+    alert('Session expired. Please log in again.');
+    logout();
+    return;
+  }
+
+  // Show loading state
+  const finishBtn = document.querySelector('.finish-btn');
+  const originalText = finishBtn.textContent;
+  finishBtn.textContent = 'Saving...';
+  finishBtn.disabled = true;
 
   fetch(`${BACKEND_URL}/api/workout/new`, {
     method: 'POST',
@@ -123,14 +187,128 @@ function finishWorkout() {
       'Authorization': `Bearer ${localStorage.getItem('token')}`
     },
     body: JSON.stringify({
+      user_id: parseInt(user_id),
       exercises: exercises
     })
   })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to save workout');
+      return response.json();
+    })
     .then(data => {
-      alert('Workout Completed!');
+      alert('Workout successfully saved!');
       document.getElementById('workout-screen').style.display = 'none';
       document.getElementById('main-screen').style.display = 'block';
     })
-    .catch(error => alert('Failed to save workout'));
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to save workout. Please try again.');
+    })
+    .finally(() => {
+      finishBtn.textContent = originalText;
+      finishBtn.disabled = false;
+    });
+}
+
+function startWorkout() {
+  hideAllScreens();
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('workout-screen').style.display = 'block';
+  document.getElementById('exercise-list').innerHTML = '';
+  addExercise();
+}
+
+// Replace the existing viewHistory function with these new functions:
+async function viewHistory() {
+  hideAllScreens();
+  const userId = localStorage.getItem('user_id');
+  if (!userId) {
+    alert('Please log in again');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/workout/history/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch history');
+
+    const workouts = await response.json();
+    const historyList = document.getElementById('workout-history-list');
+    historyList.innerHTML = workouts.map(workout => `
+      <div class="workout-history-item" onclick="viewWorkoutDetails(${workout.id})">
+        <h3>Workout on ${new Date(workout.workout_date).toLocaleDateString()}</h3>
+        <p>${workout.exercise_count} exercises</p>
+      </div>
+    `).join('');
+
+    document.getElementById('main-screen').style.display = 'none';
+    document.getElementById('history-screen').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to load workout history');
+  }
+}
+
+async function viewWorkoutDetails(workoutId) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/workout/details/${workoutId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch workout details');
+
+    const exercises = await response.json();
+    const detailsContent = document.getElementById('workout-details-content');
+    detailsContent.innerHTML = exercises.map(exercise => `
+      <div class="exercise-detail">
+        <h3>${exercise.exercise_name}</h3>
+        <p>Sets: ${exercise.sets} | Reps: ${exercise.reps} | RPE: ${exercise.rpe}</p>
+      </div>
+    `).join('');
+
+    document.getElementById('history-screen').style.display = 'none';
+    document.getElementById('workout-details-screen').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to load workout details');
+  }
+}
+
+function hideAllScreens() {
+  const screens = [
+    'auth-screen',
+    'main-screen',
+    'workout-screen',
+    'history-screen',
+    'workout-details-screen'
+  ];
+  screens.forEach(screenId => {
+    document.getElementById(screenId).style.display = 'none';
+  });
+}
+
+function backToMain() {
+  hideAllScreens();
+  document.getElementById('history-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+}
+
+function backToHistory() {
+  hideAllScreens();
+  document.getElementById('workout-details-screen').style.display = 'none';
+  document.getElementById('history-screen').style.display = 'block';
+}
+
+function logout() {
+  hideAllScreens();
+  localStorage.removeItem('token');
+  localStorage.removeItem('user_id');
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'block';
 }

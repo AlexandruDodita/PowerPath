@@ -1,3 +1,4 @@
+/* Base styles and layout */
 body, html {
   margin: 0;
   padding: 0;
@@ -6,7 +7,7 @@ body, html {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .container {
@@ -16,53 +17,57 @@ body, html {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   text-align: center;
   width: 400px;
+  max-width: 90%;
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
+/* Typography */
 h1 {
   color: #333;
-  font-size: 2.5rem;
+  font-size: 2rem;
+  margin-bottom: 20px;
 }
 
 .tagline {
-  margin-bottom: 20px;
   color: #555;
   font-style: italic;
+  margin-bottom: 20px;
 }
 
-.logo {
-  width: 100px;
-  margin-bottom: 15px;
-}
-
+/* Form elements */
 input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="number"],
 select {
-  width: 100%;
-  padding: 15px;
-  margin: 10px 0;
+  width: calc(100% - 30px);
+  padding: 12px;
+  margin: 8px 0;
   border: 1px solid #ddd;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   transition: all 0.3s ease;
 }
 
-input:focus {
+input:focus, select:focus {
   border-color: #5c67f2;
   outline: none;
   box-shadow: 0 0 8px rgba(92, 103, 242, 0.3);
 }
 
+/* Buttons */
 button {
   width: 100%;
-  padding: 15px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  padding: 12px;
   background-color: #5c67f2;
   color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
   cursor: pointer;
+  margin-top: 10px;
   transition: background-color 0.3s ease;
 }
 
@@ -70,36 +75,202 @@ button:hover {
   background-color: #4a54e1;
 }
 
-p {
-  color: #666;
-  margin: 20px 0;
+/* Navigation buttons */
+.nav-buttons {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
-.auth-screen, .main-screen, .workout-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.back-btn, .logout-btn {
+  width: auto;
+  padding: 8px 15px;
+  background-color: #f0f0f0;
+  color: #333;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  margin-top: 0;
 }
 
-.exercise-item {
-  display: flex;
-  align-items: center;
+.back-btn:hover, .logout-btn:hover {
+  background-color: #e0e0e0;
+}
+
+/* Logo */
+.logo {
+  width: 80px;
+  margin-bottom: 15px;
+}
+
+/* Screen containers */
+.auth-screen, .main-screen, .workout-screen, .history-screen, .workout-details-screen {
   width: 100%;
+}
+
+/* Exercise list styling */
+.exercise-item {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr 1fr auto;
+  gap: 8px;
   margin: 10px 0;
+  align-items: center;
 }
 
-.exercise-item select,
+.exercise-item select {
+  width: 100%;
+}
+
 .exercise-item input {
-  flex: 1;
-  margin: 0 5px;
+  width: 100%;
 }
 
-@media (max-width: 450px) {
+.remove-btn {
+  width: auto;
+  padding: 5px;
+  background: none;
+  color: #ff4444;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Workout history styling */
+.workout-history-item {
+  border: 1px solid #ddd;
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.workout-history-item:hover {
+  background-color: #f5f5f5;
+}
+
+.exercise-detail {
+  background-color: #f8f9fa;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.exercise-detail h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.exercise-detail p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Select styling */
+select optgroup {
+  font-weight: bold;
+}
+
+select option {
+  font-weight: normal;
+  padding: 4px;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
   .container {
-    width: 90%;
+    padding: 20px;
+    width: 85%;
+  }
+
+  .exercise-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  input, select, button {
+    font-size: 0.8rem;
+    padding: 10px;
   }
 
   h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
+}
+
+/* Scrollbar styling */
+.container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Workout specific styling */
+.workout-container {
+  max-width: 100%;
+  margin-top: 20px;
+}
+
+.exercise-select {
+  font-size: 0.9rem;
+}
+
+.workout-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-btn {
+  background-color: #4CAF50;
+}
+
+.action-btn:hover {
+  background-color: #45a049;
+}
+
+.finish-btn {
+  background-color: #5c67f2;
+}
+
+.finish-btn:hover {
+  background-color: #4a54e1;
+}
+
+/* Enhanced input styling */
+input[type="number"] {
+  -moz-appearance: textfield;
+  text-align: center;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Tooltip for remove button */
+.remove-btn {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #ff4444;
+  transition: color 0.3s ease;
+}
+
+.remove-btn:hover {
+  color: #ff0000;
 }

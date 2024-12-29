@@ -22,16 +22,42 @@
   </div>
 
   <div class="main-screen" id="main-screen" style="display:none;">
+    <div class="nav-buttons">
+      <button onclick="logout()" class="logout-btn">🚪 Logout</button>
+    </div>
     <h1>Welcome Back!</h1>
     <button onclick="startWorkout()">🏋️ New Workout</button>
     <button onclick="viewHistory()">📜 View History</button>
   </div>
 
   <div class="workout-screen" id="workout-screen" style="display:none;">
-    <h1>Plan Your Workout</h1>
-    <div id="exercise-list"></div>
-    <button onclick="addExercise()">➕ Add Exercise</button>
-    <button onclick="finishWorkout()">✅ Finish Workout</button>
+    <div class="nav-buttons">
+      <button onclick="backToMain()" class="back-btn">← Back</button>
+    </div>
+    <h1>New Workout</h1>
+    <div class="workout-container">
+      <div id="exercise-list"></div>
+      <div class="workout-buttons">
+        <button onclick="addExercise()" class="action-btn">Add Exercise</button>
+        <button onclick="finishWorkout()" class="finish-btn">Complete Workout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="history-screen" id="history-screen" style="display:none;">
+    <div class="nav-buttons">
+      <button onclick="backToMain()" class="back-btn">⬅️ Back</button>
+    </div>
+    <h1>Workout History</h1>
+    <div id="workout-history-list"></div>
+  </div>
+
+  <div class="workout-details-screen" id="workout-details-screen" style="display:none;">
+    <div class="nav-buttons">
+      <button onclick="backToHistory()" class="back-btn">⬅️ Back</button>
+    </div>
+    <h1>Workout Details</h1>
+    <div id="workout-details-content"></div>
   </div>
 </div>
 
