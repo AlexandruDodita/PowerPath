@@ -112,7 +112,7 @@ router.put('/update-weight', async (req, res) => {
 
   try {
     const result = await pool.query(
-      'UPDATE profiles SET weight = $1 WHERE user_id = $2 RETURNING *',
+      'UPDATE profiles SET weight = $1 WHERE user_id = $2 RETURNING weight',
       [weight, user_id]
     );
 
@@ -120,11 +120,13 @@ router.put('/update-weight', async (req, res) => {
       return res.status(404).json({ error: 'User profile not found' });
     }
 
-    res.json({ message: 'Weight updated successfully', weight: result.rows[0].weight });
+    res.json({
+      message: 'Weight updated successfully',
+      weight: result.rows[0].weight
+    });
   } catch (err) {
     console.error('Weight update error:', err);
     res.status(500).json({ error: 'Failed to update weight' });
   }
 });
-
 module.exports = router;

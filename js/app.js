@@ -333,28 +333,32 @@ async function updateWeight() {
   }
 
   try {
-    const response = await fetch(`${BACKEND_URL}/api/auth/update-weight`, {
+    const response = await fetch(`${BACKEND_URL}/api/workout/update-weight`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
       body: JSON.stringify({
-        user_id: userId,
+        user_id: parseInt(userId),
         weight: parseFloat(newWeight)
       })
     });
 
-    if (!response.ok) throw new Error('Failed to update weight');
-
     const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update weight');
+    }
+
     alert('Weight updated successfully!');
     document.getElementById('new-weight').value = '';
   } catch (error) {
     console.error('Error:', error);
-    alert('Failed to update weight');
+    alert('Failed to update weight. Please try again.');
   }
 }
+
 
 async function deleteAccount() {
   if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your workout history.')) {
@@ -393,7 +397,7 @@ function hideAllScreens() {
     'workout-screen',
     'history-screen',
     'workout-details-screen',
-    'settings-screen'
+    'settings-screen',
   ];
   screens.forEach(screenId => {
     document.getElementById(screenId).style.display = 'none';
