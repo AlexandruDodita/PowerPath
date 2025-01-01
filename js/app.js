@@ -218,7 +218,6 @@ function startWorkout() {
   addExercise();
 }
 
-// Replace the existing viewHistory function with these new functions:
 async function viewHistory() {
   hideAllScreens();
   const userId = localStorage.getItem('user_id');
@@ -239,9 +238,12 @@ async function viewHistory() {
     const workouts = await response.json();
     const historyList = document.getElementById('workout-history-list');
     historyList.innerHTML = workouts.map(workout => `
-      <div class="workout-history-item" onclick="viewWorkoutDetails(${workout.id})">
-        <h3>Workout on ${new Date(workout.workout_date).toLocaleDateString()}</h3>
-        <p>${workout.exercise_count} exercises</p>
+      <div class="workout-history-item" id="workout-${workout.id}">
+        <div class="workout-info" onclick="viewWorkoutDetails(${workout.id})">
+          <h3>Workout on ${new Date(workout.workout_date).toLocaleDateString()}</h3>
+          <p>${workout.exercise_count} exercises</p>
+        </div>
+        <button class="delete-btn" onclick="deleteWorkout(${workout.id}, event)">🗑️</button>
       </div>
     `).join('');
 
@@ -250,6 +252,42 @@ async function viewHistory() {
   } catch (error) {
     console.error('Error:', error);
     alert('Failed to load workout history');
+  }
+}
+
+async function deleteWorkout(workoutId, event) {
+  event.stopPropagation(); // Prevent triggering the viewWorkoutDetails click
+
+  if (!confirm('Are you sure you want to delete this workout? This action cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/workout/delete/${workoutId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to delete workout');
+
+    // Remove the workout from the UI using the specific workout ID
+    const workoutElement = document.getElementById(`workout-${workoutId}`);
+    if (workoutElement) {
+      workoutElement.remove();
+    }
+
+    // Check if there are any workouts left
+    const historyList = document.getElementById('workout-history-list');
+    if (historyList.children.length === 0) {
+      historyList.innerHTML = '<p class="no-workouts">No workouts found</p>';
+    }
+
+    alert('Workout deleted successfully');
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to delete workout');
   }
 }
 
@@ -280,13 +318,82 @@ async function viewWorkoutDetails(workoutId) {
   }
 }
 
+function showSettings() {
+  hideAllScreens();
+  document.getElementById('settings-screen').style.display = 'block';
+}
+
+async function updateWeight() {
+  const newWeight = document.getElementById('new-weight').value;
+  const userId = localStorage.getItem('user_id');
+
+  if (!newWeight) {
+    alert('Please enter a valid weight');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/auth/update-weight`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        weight: parseFloat(newWeight)
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to update weight');
+
+    const data = await response.json();
+    alert('Weight updated successfully!');
+    document.getElementById('new-weight').value = '';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to update weight');
+  }
+}
+
+async function deleteAccount() {
+  if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your workout history.')) {
+    return;
+  }
+
+  // Add a second confirmation for extra safety
+  if (!confirm('Really delete your account? This is your last chance to back out!')) {
+    return;
+  }
+
+  const userId = localStorage.getItem('user_id');
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/auth/delete-account/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to delete account');
+
+    alert('Account deleted successfully');
+    logout(); // This will clear localStorage and redirect to login screen
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to delete account');
+  }
+}
+
 function hideAllScreens() {
   const screens = [
     'auth-screen',
     'main-screen',
     'workout-screen',
     'history-screen',
-    'workout-details-screen'
+    'workout-details-screen',
+    'settings-screen'
   ];
   screens.forEach(screenId => {
     document.getElementById(screenId).style.display = 'none';

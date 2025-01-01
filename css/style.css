@@ -274,3 +274,76 @@ input[type="number"]::-webkit-inner-spin-button {
 .remove-btn:hover {
   color: #ff0000;
 }
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #ff4444;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 5px 10px;
+  margin-left: 10px;
+  transition: transform 0.2s;
+}
+
+.delete-btn:hover {
+  transform: scale(1.1);
+}
+
+.workout-history-item h3 {
+  margin: 0;
+  color: #333;
+}
+
+.workout-history-item p {
+  margin: 5px 0 0;
+  color: #666;
+}
+
+settings-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.weight-update-section,
+.danger-zone {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.weight-input-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.weight-input-group input {
+  flex: 1;
+}
+
+.danger-zone {
+  border: 1px solid #ff4444;
+  margin-top: 40px;
+}
+
+.danger-zone h2 {
+  color: #ff4444;
+}
+
+.delete-account-btn {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-account-btn:hover {
+  background-color: #ff0000;
+}

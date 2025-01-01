@@ -99,4 +99,32 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.delete('/delete-account/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    await pool.query('BEGIN');
+    const workouts = await pool.query(
+      'SELECT id FROM workouts WHERE user_id = $1',
+      [userId]
+    );
+
+    for (const workout of workouts.rows) {
+      await pool.query('DELETE FROM exercises WHERE workout_id = $1', [workout.id]);
+    }
+
+    await pool.query('DELETE FROM workouts WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM profiles WHERE user_id = $1', [userId]);
+    await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+
+    await pool.query('COMMIT');
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    await pool.query('ROLLBACK');
+    console.error('Account deletion error:', err);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
 module.exports = router;

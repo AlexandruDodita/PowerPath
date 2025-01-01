@@ -23,6 +23,7 @@
 
   <div class="main-screen" id="main-screen" style="display:none;">
     <div class="nav-buttons">
+      <button onclick="showSettings()" class="settings-btn">⚙️ Settings</button>
       <button onclick="logout()" class="logout-btn">🚪 Logout</button>
     </div>
     <h1>Welcome Back!</h1>
@@ -58,6 +59,27 @@
     </div>
     <h1>Workout Details</h1>
     <div id="workout-details-content"></div>
+  </div>
+</div>
+
+<!-- Add this after the workout-details-screen div -->
+<div class="settings-screen" id="settings-screen" style="display:none;">
+  <div class="nav-buttons">
+    <button onclick="backToMain()" class="back-btn">⬅️ Back</button>
+  </div>
+  <h1>Settings</h1>
+  <div class="settings-container">
+    <div class="weight-update-section">
+      <h2>Update Weight</h2>
+      <div class="weight-input-group">
+        <input type="number" id="new-weight" placeholder="Enter new weight (kg)" min="20" step="0.1">
+        <button onclick="updateWeight()">Update Weight</button>
+      </div>
+    </div>
+    <div class="danger-zone">
+      <h2>Danger Zone</h2>
+      <button onclick="deleteAccount()" class="delete-account-btn">Delete Account</button>
+    </div>
   </div>
 </div>
 

@@ -80,4 +80,51 @@ router.get('/details/:workoutId', async (req, res) => {
   }
 });
 
+router.delete('/delete/:workoutId', async (req, res) => {
+  try {
+    const workoutId = req.params.workoutId;
+
+    // First delete associated exercises (due to foreign key constraints)
+    await pool.query(
+      'DELETE FROM exercises WHERE workout_id = $1',
+      [workoutId]
+    );
+
+    // Then delete the workout
+    await pool.query(
+      'DELETE FROM workouts WHERE id = $1',
+      [workoutId]
+    );
+
+    res.json({ message: 'Workout deleted successfully' });
+  } catch (err) {
+    console.error('Workout deletion error:', err);
+    res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});
+
+router.put('/update-weight', async (req, res) => {
+  const { user_id, weight } = req.body;
+
+  if (!user_id || !weight) {
+    return res.status(400).json({ error: 'User ID and weight are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      'UPDATE profiles SET weight = $1 WHERE user_id = $2 RETURNING *',
+      [weight, user_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    res.json({ message: 'Weight updated successfully', weight: result.rows[0].weight });
+  } catch (err) {
+    console.error('Weight update error:', err);
+    res.status(500).json({ error: 'Failed to update weight' });
+  }
+});
+
 module.exports = router;
