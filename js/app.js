@@ -313,7 +313,7 @@ async function viewWorkoutDetails(workoutId) {
     detailsContent.innerHTML = exercises.map(exercise => `
       <div class="exercise-detail">
         <h3>${exercise.exercise_name}</h3>
-        <p>Sets: ${exercise.sets} | Reps: ${exercise.reps} | RPE: ${exercise.rpe}</p>
+        <p>Weight: ${exercise.weight}kg | Sets: ${exercise.sets} | Reps: ${exercise.reps} | RPE: ${exercise.rpe}</p>
       </div>
     `).join('');
 
