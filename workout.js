@@ -10,7 +10,6 @@ router.post('/new', async (req, res) => {
   }
 
   try {
-    // Insert workout into workouts table
     const workoutResult = await pool.query(
       'INSERT INTO workouts (user_id) VALUES ($1) RETURNING id',
       [user_id]
@@ -18,17 +17,16 @@ router.post('/new', async (req, res) => {
 
     const workoutId = workoutResult.rows[0].id;
 
-    // Insert exercises linked to the workout
     for (let exercise of exercises) {
-      const { exercise_name, sets, reps, rpe } = exercise;
+      const { exercise_name, sets, reps, rpe, weight } = exercise;
 
-      if (!exercise_name || !sets || !reps || rpe === undefined) {
-        continue;  // Skip incomplete exercise entries
+      if (!exercise_name || !sets || !reps || rpe === undefined || !weight) {
+        continue;
       }
 
       await pool.query(
-        'INSERT INTO exercises (workout_id, exercise_name, sets, reps, rpe) VALUES ($1, $2, $3, $4, $5)',
-        [workoutId, exercise_name, sets, reps, rpe]
+        'INSERT INTO exercises (workout_id, exercise_name, sets, reps, rpe, weight) VALUES ($1, $2, $3, $4, $5, $6)',
+        [workoutId, exercise_name, sets, reps, rpe, weight]
       );
     }
 
@@ -39,7 +37,7 @@ router.post('/new', async (req, res) => {
   }
 });
 
-//fetcher for the history
+
 router.get('/history/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -66,7 +64,7 @@ router.get('/details/:workoutId', async (req, res) => {
   try {
     const workoutId = req.params.workoutId;
     const exercises = await pool.query(
-      `SELECT exercise_name, sets, reps, rpe
+      `SELECT exercise_name, sets, reps, rpe, weight
        FROM exercises
        WHERE workout_id = $1
        ORDER BY id`,
@@ -84,13 +82,11 @@ router.delete('/delete/:workoutId', async (req, res) => {
   try {
     const workoutId = req.params.workoutId;
 
-    // First delete associated exercises (due to foreign key constraints)
     await pool.query(
       'DELETE FROM exercises WHERE workout_id = $1',
       [workoutId]
     );
 
-    // Then delete the workout
     await pool.query(
       'DELETE FROM workouts WHERE id = $1',
       [workoutId]
@@ -149,7 +145,7 @@ router.get('/weight-history/:userId', async (req, res) => {
   }
 });
 
-// Add new weight entry
+
 router.post('/track-weight', async (req, res) => {
   const { user_id, weight, note } = req.body;
 

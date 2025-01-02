@@ -10,13 +10,11 @@ const app = express();
 
 // Add CORS middleware
 app.use(cors({
-  origin: 'http://localhost:63342', // Allow your frontend origin
+  origin: 'http://localhost:63342',//connect to frontend
   credentials: true
 }));
 
 app.use(bodyParser.json());
-
-// Mount routes
 app.use('/api/auth', authRoutes);
 app.use('/api/workout', workoutRoutes);
 

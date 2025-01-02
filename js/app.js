@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://localhost:5000'; // Updated to match your backend port
+const BACKEND_URL = 'http://localhost:5000';
 
 async function handleAuth(event) {
   event.preventDefault();
@@ -82,6 +82,20 @@ function showRegister() {
 
 function addExercise() {
   const list = document.getElementById('exercise-list');
+  if (!document.querySelector('.exercise-header')) {
+    const header = document.createElement('div');
+    header.classList.add('exercise-header');
+    header.innerHTML = `
+      <span class="header-item">Exercise</span>
+      <span class="header-item">Weight (kg)</span>
+      <span class="header-item">Sets</span>
+      <span class="header-item">Reps</span>
+      <span class="header-item">RPE</span>
+      <span class="header-item"></span>
+    `;
+    list.insertBefore(header, list.firstChild);
+  }
+
   const div = document.createElement('div');
   div.classList.add('exercise-item');
   div.innerHTML = `
@@ -120,6 +134,7 @@ function addExercise() {
         <option>Preacher Curls</option>
       </optgroup>
     </select>
+    <input type="number" placeholder="Weight" min="0" max="1000" step="2.5" value="0" oninput="validateNumber(this, 0, 1000)">
     <input type="number" placeholder="Sets" min="1" max="20" value="3" oninput="validateNumber(this, 1, 20)">
     <input type="number" placeholder="Reps" min="1" max="100" value="10" oninput="validateNumber(this, 1, 100)">
     <input type="number" placeholder="RPE" min="0" max="10" step="0.5" value="7" oninput="validateRPE(this)">
@@ -128,16 +143,14 @@ function addExercise() {
   list.appendChild(div);
 }
 
-function validateNumber(input, min, max) {
+function validateNumber(input, min, max) { //used to validate weight, number of sets and weight.
   let value = parseInt(input.value);
   if (isNaN(value)) value = min;
   input.value = Math.min(Math.max(value, min), max);
 }
 
 function validateRPE(input) {
-  let value = parseFloat(input.value);
-  if (isNaN(value)) value = 7;
-  input.value = Math.min(Math.max(value, 0), 10);
+  validateNumber(input,0,10);
 }
 
 function removeExercise(button) {
@@ -152,17 +165,18 @@ function removeExercise(button) {
 function finishWorkout() {
   const exercises = Array.from(document.getElementsByClassName('exercise-item')).map(item => {
     const select = item.querySelector('select');
-    const [sets, reps, rpe] = Array.from(item.querySelectorAll('input')).map(input => input.value);
+    const [weight, sets, reps, rpe] = Array.from(item.querySelectorAll('input')).map(input => input.value);
 
     return {
       exercise_name: select.value,
+      weight: parseFloat(weight),
       sets: parseInt(sets),
       reps: parseInt(reps),
       rpe: parseFloat(rpe)
     };
   });
 
-  if (exercises.some(ex => !ex.exercise_name || !ex.sets || !ex.reps || ex.rpe === undefined)) {
+  if (exercises.some(ex => !ex.exercise_name || !ex.sets || !ex.reps || ex.rpe === undefined || !ex.weight)) {
     alert('Please fill in all exercise details');
     return;
   }
@@ -173,12 +187,6 @@ function finishWorkout() {
     logout();
     return;
   }
-
-  // Show loading state
-  const finishBtn = document.querySelector('.finish-btn');
-  const originalText = finishBtn.textContent;
-  finishBtn.textContent = 'Saving...';
-  finishBtn.disabled = true;
 
   fetch(`${BACKEND_URL}/api/workout/new`, {
     method: 'POST',
@@ -203,10 +211,6 @@ function finishWorkout() {
     .catch(error => {
       console.error('Error:', error);
       alert('Failed to save workout. Please try again.');
-    })
-    .finally(() => {
-      finishBtn.textContent = originalText;
-      finishBtn.disabled = false;
     });
 }
 
@@ -247,6 +251,10 @@ async function viewHistory() {
       </div>
     `).join('');
 
+    if (historyList.children.length === 0) {
+      historyList.innerHTML = '<p class="no-workouts">No workouts found</p>';
+    }
+
     document.getElementById('main-screen').style.display = 'none';
     document.getElementById('history-screen').style.display = 'block';
   } catch (error) {
@@ -272,13 +280,12 @@ async function deleteWorkout(workoutId, event) {
 
     if (!response.ok) throw new Error('Failed to delete workout');
 
-    // Remove the workout from the UI using the specific workout ID
+
     const workoutElement = document.getElementById(`workout-${workoutId}`);
     if (workoutElement) {
       workoutElement.remove();
     }
 
-    // Check if there are any workouts left
     const historyList = document.getElementById('workout-history-list');
     if (historyList.children.length === 0) {
       historyList.innerHTML = '<p class="no-workouts">No workouts found</p>';
@@ -337,7 +344,6 @@ async function loadUserInfo() {
 
     const userData = await response.json();
 
-    // Update the display
     document.getElementById('info-username').textContent = userData.username;
     document.getElementById('info-fullname').textContent =
       `${userData.first_name} ${userData.last_name}`;
@@ -347,7 +353,6 @@ async function loadUserInfo() {
 
   } catch (error) {
     console.error('Error:', error);
-    // Set error message in the display
     const infoElements = ['username', 'fullname', 'email', 'gender', 'age'];
     infoElements.forEach(el => {
       document.getElementById(`info-${el}`).textContent = 'Error loading data';
@@ -367,7 +372,6 @@ function showPasswordChange() {
   form.style.display = 'block';
   btn.style.display = 'none';
 
-  // Clear any previous inputs and errors
   ['current-password', 'new-password', 'confirm-password'].forEach(id => {
     const input = document.getElementById(id);
     input.value = '';
@@ -388,12 +392,10 @@ async function updatePassword() {
   const confirmPassword = document.getElementById('confirm-password').value;
   const userId = localStorage.getItem('user_id');
 
-  // Clear any previous error styling
   ['current-password', 'new-password', 'confirm-password'].forEach(id => {
     document.getElementById(id).style.borderColor = '';
   });
 
-  // Validation
   if (!currentPassword || !newPassword || !confirmPassword) {
     alert('Please fill in all password fields');
     return;
@@ -501,7 +503,7 @@ async function deleteAccount() {
     if (!response.ok) throw new Error('Failed to delete account');
 
     alert('Account deleted successfully');
-    logout(); // This will clear localStorage and redirect to login screen
+    logout(); // This will clear localStorage
   } catch (error) {
     console.error('Error:', error);
     alert('Failed to delete account');
@@ -529,16 +531,15 @@ async function loadWeightHistory() {
 
     const weightData = await response.json();
 
-    // Destroy existing chart if it exists
     if (weightChart) {
       weightChart.destroy();
     }
 
-    // Prepare data for chart
+    //Get relevant data
     const dates = weightData.map(entry => new Date(entry.tracked_at).toLocaleDateString());
     const weights = weightData.map(entry => entry.weight);
 
-    // Create new chart
+    //Create chart
     const ctx = document.getElementById('weightChart').getContext('2d');
     weightChart = new Chart(ctx, {
       type: 'line',
@@ -614,7 +615,6 @@ async function submitWeight() {
 
     if (!response.ok) throw new Error('Failed to track weight');
 
-    // Clear inputs
     weightInput.value = '';
     noteInput.value = '';
 

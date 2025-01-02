@@ -450,3 +450,24 @@ button:hover {
     padding: 15px;
   }
 }
+
+.exercise-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 40px;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  padding: 0 5px;
+}
+
+.header-item {
+  text-align: center;
+}
+
+.exercise-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 40px;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
