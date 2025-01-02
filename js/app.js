@@ -318,9 +318,129 @@ async function viewWorkoutDetails(workoutId) {
   }
 }
 
+async function loadUserInfo() {
+  const userId = localStorage.getItem('user_id');
+  if (!userId) {
+    alert('Please log in again');
+    logout();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/auth/user-info/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch user information');
+
+    const userData = await response.json();
+
+    // Update the display
+    document.getElementById('info-username').textContent = userData.username;
+    document.getElementById('info-fullname').textContent =
+      `${userData.first_name} ${userData.last_name}`;
+    document.getElementById('info-email').textContent = userData.email;
+    document.getElementById('info-gender').textContent = userData.gender;
+    document.getElementById('info-age').textContent = `${userData.age} years`;
+
+  } catch (error) {
+    console.error('Error:', error);
+    // Set error message in the display
+    const infoElements = ['username', 'fullname', 'email', 'gender', 'age'];
+    infoElements.forEach(el => {
+      document.getElementById(`info-${el}`).textContent = 'Error loading data';
+    });
+  }
+}
+
 function showSettings() {
   hideAllScreens();
   document.getElementById('settings-screen').style.display = 'block';
+  loadUserInfo();
+}
+
+function showPasswordChange() {
+  const form = document.getElementById('password-change-form');
+  const btn = document.querySelector('.change-password-btn');
+  form.style.display = 'block';
+  btn.style.display = 'none';
+
+  // Clear any previous inputs and errors
+  ['current-password', 'new-password', 'confirm-password'].forEach(id => {
+    const input = document.getElementById(id);
+    input.value = '';
+    input.style.borderColor = '';
+  });
+}
+
+function hidePasswordChange() {
+  const form = document.getElementById('password-change-form');
+  const btn = document.querySelector('.change-password-btn');
+  form.style.display = 'none';
+  btn.style.display = 'block';
+}
+
+async function updatePassword() {
+  const currentPassword = document.getElementById('current-password').value;
+  const newPassword = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('confirm-password').value;
+  const userId = localStorage.getItem('user_id');
+
+  // Clear any previous error styling
+  ['current-password', 'new-password', 'confirm-password'].forEach(id => {
+    document.getElementById(id).style.borderColor = '';
+  });
+
+  // Validation
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    alert('Please fill in all password fields');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    alert('New passwords do not match');
+    document.getElementById('new-password').style.borderColor = 'red';
+    document.getElementById('confirm-password').style.borderColor = 'red';
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    alert('New password must be at least 6 characters long');
+    document.getElementById('new-password').style.borderColor = 'red';
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/auth/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        user_id: parseInt(userId),
+        current_password: currentPassword,
+        new_password: newPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update password');
+    }
+
+    alert('Password updated successfully!');
+    hidePasswordChange(); // Hide the form after successful update
+  } catch (error) {
+    console.error('Error:', error);
+    if (error.message === 'Current password is incorrect') {
+      document.getElementById('current-password').style.borderColor = 'red';
+    }
+    alert(error.message || 'Failed to update password. Please try again.');
+  }
 }
 
 async function updateWeight() {
@@ -364,8 +484,6 @@ async function deleteAccount() {
   if (!confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your workout history.')) {
     return;
   }
-
-  // Add a second confirmation for extra safety
   if (!confirm('Really delete your account? This is your last chance to back out!')) {
     return;
   }

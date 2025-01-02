@@ -57,17 +57,15 @@ router.post('/register', async (req, res) => {
 
 
 
-// User Login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
-  // Input validation
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
   try {
-    // Check if user exists
+
     const result = await pool.query(
       'SELECT * FROM users WHERE username = $1',
       [username]
@@ -77,7 +75,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'User does not exist' });
     }
 
-    // Compare passwords
+
     const user = result.rows[0];
     const validPassword = await bcrypt.compare(password, result.rows[0].password);
     if (!validPassword) {
@@ -124,6 +122,73 @@ router.delete('/delete-account/:userId', async (req, res) => {
     await pool.query('ROLLBACK');
     console.error('Account deletion error:', err);
     res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
+
+router.get('/user-info/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const result = await pool.query(
+      `SELECT u.username, u.email, p.first_name, p.last_name, p.age, p.gender
+       FROM users u
+              JOIN profiles p ON u.id = p.user_id
+       WHERE u.id = $1`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching user info:', err);
+    res.status(500).json({ error: 'Failed to fetch user information' });
+  }
+});
+
+router.put('/change-password', async (req, res) => {
+  const { user_id, current_password, new_password } = req.body;
+
+  if (!user_id || !current_password || !new_password) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    // First verify the current password
+    const userResult = await pool.query(
+      'SELECT password FROM users WHERE id = $1',
+      [user_id]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const validPassword = await bcrypt.compare(
+      current_password,
+      userResult.rows[0].password
+    );
+
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(new_password, 10);
+
+    // Update the password
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedNewPassword, user_id]
+    );
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('Password change error:', err);
+    res.status(500).json({ error: 'Failed to update password' });
   }
 });
 

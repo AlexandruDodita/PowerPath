@@ -67,11 +67,44 @@
     </div>
     <h1>Settings</h1>
     <div class="settings-container">
-      <div class="weight-update-section">
-        <h2>Update Weight</h2>
-        <div class="weight-input-group">
-          <input type="number" id="new-weight" placeholder="Enter new weight (kg)" min="20" step="0.1">
-          <button onclick="updateWeight()">Update Weight</button>
+      <div class="account-info-section">
+        <h2>Account Information</h2>
+        <div class="info-grid" id="user-info-display">
+          <div class="info-item">
+            <span class="info-label">Username</span>
+            <span class="info-value" id="info-username"  data-status="loading" >Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Full Name</span>
+            <span class="info-value" id="info-fullname"  data-status="loading">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value" id="info-email"  data-status="loading">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Gender</span>
+            <span class="info-value" id="info-gender"  data-status="loading">Loading...</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Age</span>
+            <span class="info-value" id="info-age"  data-status="loading">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="security-section">
+        <h2>Security Settings</h2>
+        <button onclick="showPasswordChange()" class="change-password-btn">Change Password</button>
+        <div id="password-change-form" style="display: none;">
+          <div class="password-input-group">
+            <input type="password" id="current-password" placeholder="Current Password" required>
+            <input type="password" id="new-password" placeholder="New Password" required>
+            <input type="password" id="confirm-password" placeholder="Confirm New Password" required>
+            <div class="password-buttons">
+              <button onclick="updatePassword()" class="confirm-btn">Update Password</button>
+              <button onclick="hidePasswordChange()" class="cancel-btn">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="danger-zone">

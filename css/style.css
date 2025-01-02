@@ -247,3 +247,151 @@ button:hover {
 .danger-zone h2 {
   color: #ff4444;
 }
+
+.account-info-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.account-info-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #4CAF50;
+  padding-bottom: 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-label {
+  color: #666;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 500;
+  padding: 5px 0;
+}
+
+/* Add a subtle hover effect */
+.info-item:hover {
+  transform: translateY(-2px);
+  transition: transform 0.2s ease;
+}
+
+/* Loading animation for the placeholder text */
+.info-value:empty::after,
+.info-value[data-status="loading"] {
+  color: #999;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.security-section {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.security-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #5c67f2;
+  padding-bottom: 10px;
+}
+
+.change-password-btn {
+  width: auto;
+  padding: 10px 20px;
+  background-color: #5c67f2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.change-password-btn:hover {
+  background-color: #4a54e1;
+}
+
+.password-input-group {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.password-input-group input {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.password-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.confirm-btn, .cancel-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-btn {
+  background-color: #5c67f2;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #4a54e1;
+}
+
+.cancel-btn {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #d0d0d0;
+}
+
+.password-input-group input:focus {
+  border-color: #5c67f2;
+  outline: none;
+  box-shadow: 0 0 5px rgba(92, 103, 242, 0.3);
+}
