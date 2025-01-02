@@ -32,7 +32,6 @@ router.post('/register', async (req, res) => {
     );
 
     const userId = userResult.rows[0].id;
-
     const profileInsert = await pool.query(
       'INSERT INTO profiles (user_id, first_name, last_name, age, gender, weight) VALUES ($1, $2, $3, $4, $5, $6)',
       [userId, first_name, last_name, age, gender, weight]
@@ -40,6 +39,15 @@ router.post('/register', async (req, res) => {
 
     if (profileInsert.rowCount === 0) {
       throw new Error('Profile insertion failed.');
+    }
+
+    const weightTrackingInsert = await pool.query(
+      'INSERT INTO weight_tracking (user_id, weight, tracked_at, note) VALUES ($1, $2, NOW(), $3)',
+      [userId, weight, 'Initial weight at registration']
+    );
+
+    if (weightTrackingInsert.rowCount === 0) {
+      throw new Error('Weight tracking insertion failed.');
     }
 
     await pool.query('COMMIT');

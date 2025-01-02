@@ -129,4 +129,49 @@ router.put('/update-weight', async (req, res) => {
     res.status(500).json({ error: 'Failed to update weight' });
   }
 });
+
+router.get('/weight-history/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const weights = await pool.query(
+      `SELECT weight, tracked_at, note
+       FROM weight_tracking
+       WHERE user_id = $1
+       ORDER BY tracked_at DESC
+       LIMIT 100`,
+      [userId]
+    );
+
+    res.json(weights.rows);
+  } catch (err) {
+    console.error('Weight history fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch weight history' });
+  }
+});
+
+// Add new weight entry
+router.post('/track-weight', async (req, res) => {
+  const { user_id, weight, note } = req.body;
+
+  if (!user_id || !weight) {
+    return res.status(400).json({ error: 'User ID and weight are required' });
+  }
+
+  try {
+    const result = await pool.query(
+      'INSERT INTO weight_tracking (user_id, weight, note) VALUES ($1, $2, $3) RETURNING *',
+      [user_id, weight, note]
+    );
+
+    res.json({
+      message: 'Weight tracked successfully',
+      entry: result.rows[0]
+    });
+  } catch (err) {
+    console.error('Weight tracking error:', err);
+    res.status(500).json({ error: 'Failed to track weight' });
+  }
+});
+
+
 module.exports = router;

@@ -508,6 +508,126 @@ async function deleteAccount() {
   }
 }
 
+let weightChart = null; // Store chart instance
+
+async function trackWeight() {
+  hideAllScreens();
+  document.getElementById('weight-screen').style.display = 'block';
+  await loadWeightHistory();
+}
+
+async function loadWeightHistory() {
+  const userId = localStorage.getItem('user_id');
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/workout/weight-history/${userId}`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+
+    if (!response.ok) throw new Error('Failed to fetch weight history');
+
+    const weightData = await response.json();
+
+    // Destroy existing chart if it exists
+    if (weightChart) {
+      weightChart.destroy();
+    }
+
+    // Prepare data for chart
+    const dates = weightData.map(entry => new Date(entry.tracked_at).toLocaleDateString());
+    const weights = weightData.map(entry => entry.weight);
+
+    // Create new chart
+    const ctx = document.getElementById('weightChart').getContext('2d');
+    weightChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: dates.reverse(),
+        datasets: [{
+          label: 'Weight (kg)',
+          data: weights.reverse(),
+          borderColor: '#5c67f2',
+          backgroundColor: 'rgba(92, 103, 242, 0.1)',
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Weight: ${context.raw} kg`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              callback: function(value) {
+                return value + ' kg';
+              }
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to load weight history');
+  }
+}
+
+async function submitWeight() {
+  const weightInput = document.getElementById('weight-input');
+  const noteInput = document.getElementById('weight-note');
+  const weight = parseFloat(weightInput.value);
+  const note = noteInput.value.trim();
+  const userId = localStorage.getItem('user_id');
+
+  if (!weight || weight < 20 || weight > 500) {
+    alert('Please enter a valid weight between 20 and 500 kg');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/workout/track-weight`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({
+        user_id: parseInt(userId),
+        weight: weight,
+        note: note
+      })
+    });
+
+    if (!response.ok) throw new Error('Failed to track weight');
+
+    // Clear inputs
+    weightInput.value = '';
+    noteInput.value = '';
+
+    // Reload the chart
+    await loadWeightHistory();
+
+    alert('Weight tracked successfully!');
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Failed to track weight');
+  }
+}
+
 function hideAllScreens() {
   const screens = [
     'auth-screen',
@@ -516,6 +636,7 @@ function hideAllScreens() {
     'history-screen',
     'workout-details-screen',
     'settings-screen',
+    'weight-screen'
   ];
   screens.forEach(screenId => {
     document.getElementById(screenId).style.display = 'none';
